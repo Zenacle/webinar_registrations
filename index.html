@@ -2951,6 +2951,13 @@
       let appliedPromo  = null;
       let tempLeadData  = {};
 
+      const PROMO_CODES = {
+        ZEN70: { storageKey: "promo_zen70_used" },
+        ZEN100: { storageKey: "promo_zen100_used" },
+        MATT100: { storageKey: "promo_matt100_used" },
+        MET100: { storageKey: "promo_met100_used" }
+      };
+
       // ─── Helper: set form button loading state ────────────────────────────────
       function setLoadingState(isLoading) {
         const spinner = document.getElementById("btnSpinner");
