@@ -3098,7 +3098,7 @@
         applyBtn.disabled = true;
         applyBtn.textContent = "Applying...";
 
-        fetch('/validate-promo', {
+        fetch('https://webinar-registrations-bk1y.vercel.app/validate-promo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3151,7 +3151,7 @@
         setPayLoadingState(true);
         if (finalPrice === 0) {
           // Free access flow — bypass Razorpay and submit directly to verify-payment
-          fetch('/verify-payment', {
+          fetch('https://webinar-registrations-bk1y.vercel.app/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -3183,7 +3183,7 @@
           });
         } else {
           // Paid flow — request Razorpay order creation first
-          fetch('/create-order', {
+          fetch('https://webinar-registrations-bk1y.vercel.app/create-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -3220,7 +3220,7 @@
           order_id: orderData.orderId,
           handler: function(response) {
             // Verify payment signature on backend
-            fetch('/verify-payment', {
+            fetch('https://webinar-registrations-bk1y.vercel.app/verify-payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
