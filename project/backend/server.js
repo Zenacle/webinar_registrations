@@ -262,6 +262,10 @@ app.post('/verify-payment', async (req, res) => {
     promoData,
   } = req.body;
 
+  const nameParts = (leadData?.fullName || '').split(' ');
+  const firstName = leadData?.firstName || nameParts[0] || '';
+  const lastName = leadData?.lastName || nameParts.slice(1).join(' ') || '';
+
   // free‑access shortcut – if final amount is zero
   if (promoData && promoData.finalAmount === 0) {
     try {
@@ -269,11 +273,13 @@ app.post('/verify-payment', async (req, res) => {
         return res.status(409).json({ success: false, message: 'You have already registered.' });
       }
       const insertPayload = {
+        first_name: firstName,
+        last_name: lastName,
         full_name: leadData.fullName,
         email: leadData.email,
         phone: leadData.phone,
         city: leadData.city,
-        engineering_background: leadData.background,
+        specialisation: leadData.background,
         workshop_batch: leadData.session,
         promo_code: promoData.couponType || null,
         coupon_type: promoData.couponType || null,
@@ -281,14 +287,17 @@ app.post('/verify-payment', async (req, res) => {
         final_amount: 0,
         discount_percentage: promoData.discountPercentage || 0,
         payment_status: 'free_access',
-        payment_method: 'free',
-        razorpay_payment_id: `FREE_${Date.now()}`,
-        razorpay_order_id: null,
-        razorpay_signature: null,
+        payment_method: 'promo_code',
+        razorpay_payment_id: `FREE_${promoData.couponType || 'ACCESS'}`,
+        razorpay_order_id: 'FREE_ORDER',
+        razorpay_signature: 'FREE_SIGNATURE',
         registration_source: 'webinar-landing',
       };
       const { error } = await supabase.from('webinar_registrations').insert([insertPayload]);
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase Free Insert Error:', error);
+        throw error;
+      }
       return res.json({ success: true, message: 'Registration saved (free access).', paymentId: insertPayload.razorpay_payment_id });
     } catch (e) {
       console.error('Free registration error:', e);
@@ -323,11 +332,13 @@ app.post('/verify-payment', async (req, res) => {
   // 3️⃣ Persist registration
   // ------------------------------------------------------------
   const insertPayload = {
+    first_name: firstName,
+    last_name: lastName,
     full_name: leadData.fullName,
     email: leadData.email,
     phone: leadData.phone,
     city: leadData.city,
-    engineering_background: leadData.background,
+    specialisation: leadData.background,
     workshop_batch: leadData.session,
     promo_code: promoData.couponType || null,
     coupon_type: promoData.couponType || null,
