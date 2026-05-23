@@ -42,7 +42,7 @@ const razorpay = new Razorpay({
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-const DEFAULT_PRICE = 5; // INR
+const DEFAULT_PRICE = 999; // INR
 
 const PROMO_DEFINITIONS = {
   ZEN70: { discountPercent: 70, type: 'single' },
