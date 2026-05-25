@@ -417,12 +417,39 @@
       background-color: var(--bg-light);
       border: 1px solid transparent;
       transition: var(--transition-smooth);
+      cursor: pointer;
+      user-select: none;
     }
 
     .session-item:hover {
       background-color: var(--white);
       border-color: var(--accent-cyan);
-      box-shadow: var(--shadow-sm);
+      box-shadow: 0 8px 24px rgba(3, 179, 195, 0.15), 0 0 0 1px rgba(3, 179, 195, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .session-item:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 4px 12px rgba(3, 179, 195, 0.1);
+    }
+
+    @keyframes glowHighlight {
+      0% {
+        box-shadow: var(--shadow-lg);
+        border-color: var(--border-color);
+      }
+      15% {
+        box-shadow: 0 0 30px rgba(3, 179, 195, 0.6);
+        border-color: var(--accent-cyan);
+      }
+      100% {
+        box-shadow: var(--shadow-lg);
+        border-color: var(--border-color);
+      }
+    }
+
+    .registration-card.glow-highlight {
+      animation: glowHighlight 2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .session-info {
@@ -2058,6 +2085,232 @@
       font-size: 0.8rem;
       color: var(--text-light-muted);
     }
+
+    /* ==========================================================================
+       RESPONSIVE BREAKPOINTS & LAYOUT OPTIMIZATIONS
+       ========================================================================== */
+
+    /* Universal Responsive Utilities */
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+      position: relative;
+    }
+
+    .hero-heading {
+      font-size: clamp(2.2rem, 5vw, 3.5rem) !important;
+    }
+    
+    .section-heading-large {
+      font-size: clamp(1.8rem, 4vw, 2.75rem) !important;
+    }
+
+    .section-heading {
+      font-size: clamp(1.5rem, 3.5vw, 2.25rem) !important;
+    }
+
+    /* 1️⃣ LAPTOP / LARGE DESKTOP (1025px+) */
+    @media (min-width: 1025px) {
+      .container {
+        max-width: var(--max-width);
+        padding: 0 40px;
+      }
+      section {
+        padding: 80px 0;
+      }
+    }
+
+    /* 2️⃣ TABLET OPTIMIZATION (768px - 1024px) */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .container {
+        padding: 0 32px;
+      }
+      
+      section {
+        padding: 60px 0;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1.1fr 0.9fr !important;
+        gap: 32px !important;
+        align-items: center;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 24px !important;
+      }
+
+      .audience-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 24px !important;
+      }
+
+      .registration-grid {
+        grid-template-columns: 1.1fr 0.9fr !important;
+        gap: 32px !important;
+      }
+
+      .footer-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 32px !important;
+      }
+    }
+
+    /* 3️⃣ MOBILE OPTIMIZATION (320px - 767px) */
+    @media (max-width: 767px) {
+      .container {
+        padding: 0 20px;
+      }
+
+      section {
+        padding: 48px 0;
+      }
+
+      /* Stack sections vertically */
+      .hero-grid,
+      .stats-grid,
+      .audience-grid,
+      .registration-grid,
+      .footer-grid,
+      .walkaway-grid,
+      .bonus-grid {
+        grid-template-columns: 1fr !important;
+        gap: 28px !important;
+      }
+
+      .instructor-card {
+        padding: 24px !important;
+        gap: 24px !important;
+      }
+
+      .instructor-avatar-container {
+        margin: 0 auto !important;
+      }
+
+      /* Navbar scaling */
+      .navbar {
+        padding: 12px 0 !important;
+      }
+      .brand-logo-img {
+        height: 36px !important;
+      }
+      .navbar .btn {
+        padding: 8px 16px !important;
+        font-size: 0.85rem !important;
+      }
+
+      /* Hero mobile layout & spacing */
+      .hero-section {
+        padding-top: 100px !important;
+        padding-bottom: 40px !important;
+        min-height: auto !important;
+      }
+      .hero-left {
+        text-align: center;
+      }
+      .badge-live {
+        margin: 0 auto 16px auto !important;
+      }
+      .hero-cta-group {
+        flex-direction: column !important;
+        gap: 12px !important;
+        align-items: center !important;
+        width: 100% !important;
+      }
+      .hero-cta-group .btn {
+        width: 100% !important;
+        text-align: center;
+        justify-content: center;
+        padding: 16px 28px !important;
+        font-size: 1.05rem !important;
+      }
+      .hero-cta-note {
+        justify-content: center !important;
+      }
+
+      /* Touch targets & buttons */
+      .btn, .btn-submit, .btn-survey {
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 28px !important;
+      }
+
+      .btn-survey {
+        width: 100%;
+        text-align: center;
+      }
+
+      /* Form mobile layout */
+      .form-row {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+
+      .registration-card {
+        padding: 24px 20px !important;
+        border-radius: var(--border-radius-md) !important;
+      }
+
+      /* Prevent mobile heavy animations */
+      .reveal {
+        transition-duration: 0.4s !important;
+        transform: none !important;
+        opacity: 1 !important;
+      }
+
+      /* Sticky footer CTA layout */
+      .mobile-sticky-cta {
+        display: flex !important;
+        padding: 10px 16px !important;
+        bottom: 0 !important;
+        position: fixed !important;
+        box-sizing: border-box !important;
+      }
+
+      .mobile-sticky-cta .btn {
+        min-height: 44px !important;
+        padding: 10px 20px !important;
+        font-size: 0.95rem !important;
+      }
+
+      body {
+        padding-bottom: 72px !important;
+      }
+
+      /* Modal Responsiveness */
+      .premium-payment-modal .modal-card {
+        padding: 24px 16px !important;
+        max-width: 95% !important;
+        width: 100% !important;
+        margin: 20px auto !important;
+        border-radius: 16px !important;
+      }
+
+      .payment-progress {
+        font-size: 0.75rem !important;
+        gap: 8px !important;
+      }
+      
+      .promo-input-group {
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      
+      .promo-input-group .btn-secondary {
+        width: 100% !important;
+        min-height: 44px !important;
+        justify-content: center !important;
+      }
+
+      /* Adjust mock gateway inside modal for small viewport heights & landscape */
+      .mock-gateway-card {
+        max-width: 100% !important;
+        border-radius: 12px !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2102,7 +2355,7 @@
           
           <div class="session-list">
             <!-- Session 1 -->
-            <div class="session-item">
+            <div class="session-item" data-session-val="May 31, 2026 · Online">
               <div class="session-info">
                 <div class="session-icon">
                   <!-- Video Camera Icon -->
@@ -2117,7 +2370,7 @@
             </div>
 
             <!-- Session 2 -->
-            <div class="session-item">
+            <div class="session-item" data-session-val="June 07, 2026 · Online">
               <div class="session-info">
                 <div class="session-icon">
                   <!-- Video Camera Icon -->
@@ -2331,7 +2584,6 @@
       
       <div class="reveal">
         <span class="section-eyebrow">Your Instructor</span>
-        <h2 class="section-heading-large">A practitioner — not a lecturer.</h2>
       </div>
 
       <!-- Instructor Card -->
@@ -2388,7 +2640,7 @@
             Complete our short career survey to unlock exclusive workshop pricing.
           </p>
           <a href="https://forms.gle/QJgu5o75gonnXU9NA" target="_blank" class="btn-survey">
-            Take Career Survey
+            Take Survey
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </a>
         </div>
@@ -2520,7 +2772,7 @@
                 <select id="background" class="form-control select-dropdown" required>
                   <option value="" disabled selected>Select your specialisation</option>
                   <option value="Mechanical">Mechanical Engineering</option>
-                  <option value="EEE">Electrical and Electronics Engineering (EEE)</option>
+                  <option value="EEE">Electrical and Electronics Engineering</option>
                   <option value="Civil">Civil Engineering</option>
                   <option value="Environmental">Environmental Engineering</option>
                   <option value="Architect">Architect</option>
@@ -2532,15 +2784,15 @@
 
             <!-- Session Dropdown -->
             <div class="form-group" id="groupSession">
-              <label for="session">Select Workshop Batch</label>
+              <label for="session">Select Workshop Date</label>
               <div class="select-wrapper">
                 <select id="session" class="form-control select-dropdown" required>
-                  <option value="" disabled selected>Select preferred batch</option>
-                  <option value="May 31, 2026 - Online">May 31, 2026 - 11:00 AM IST · Online</option>
-                  <option value="June 07, 2026 - Online">June 07, 2026 - 11:00 AM IST · Online</option>
+                  <option value="" disabled selected hidden>Select preferred workshop date</option>
+                  <option value="May 31, 2026 · Online">May 31, 2026 · Online</option>
+                  <option value="June 07, 2026 · Online">June 07, 2026 · Online</option>
                 </select>
               </div>
-              <span class="error-message" id="errorSession">Please select your preferred workshop batch</span>
+              <span class="error-message" id="errorSession">Please select your preferred workshop date</span>
             </div>
 
             <!-- CTA button -->
@@ -2562,7 +2814,7 @@
       <span class="mobile-sticky-price">₹999</span>
       <span class="mobile-sticky-label">Live Workshop</span>
     </div>
-    <a href="#registration" class="btn btn-accent" style="padding: 10px 20px; font-size: 0.9rem;">Reserve Seat</a>
+    <a href="#registration" class="btn btn-accent" style="padding: 12px 24px; font-size: 1rem; font-weight: 700;">Reserve Your Seat</a>
   </div>
 
   <!-- Payment Modal Overlay -->
@@ -2839,6 +3091,42 @@
         } else {
           mobileStickyCta.classList.remove("show");
         }
+      });
+
+      /* ==========================================================================
+         HERO SESSION CARDS CLICK HANDLER
+         ========================================================================== */
+      const sessionCards = document.querySelectorAll(".session-item");
+      const sessionDropdown = document.getElementById("session");
+      const registrationCard = document.querySelector(".registration-card");
+
+      sessionCards.forEach(card => {
+        card.addEventListener("click", function () {
+          const val = this.getAttribute("data-session-val");
+          if (val && sessionDropdown) {
+            sessionDropdown.value = val;
+            sessionDropdown.dispatchEvent(new Event("change"));
+          }
+
+          // Smooth scroll to form section
+          if (registrationSection) {
+            registrationSection.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+
+          // Temporary glow / highlight animation
+          if (registrationCard) {
+            registrationCard.classList.remove("glow-highlight");
+            void registrationCard.offsetWidth; // trigger reflow
+            registrationCard.classList.add("glow-highlight");
+          }
+
+          // Focus field after scrolling
+          setTimeout(() => {
+            if (sessionDropdown) {
+              sessionDropdown.focus();
+            }
+          }, 800);
+        });
       });
 
       /* ==========================================================================
