@@ -146,19 +146,20 @@ async function validatePromo(promoCode, email, phone) {
   }
   // Limited‑use check
   if (promo.type === 'limited') {
-    const { data, error } = await supabase
+    const { count, error } = await supabase
       .from('webinar_registrations')
       .select('id', { count: 'exact', head: true })
-      .eq('promo_code', code);
+      .eq('promo_code', code)
+      .in('payment_status', ['free_access', 'success']);
     if (error) {
       console.error('Supabase usage count error:', error);
       return { valid: false, message: 'Server error validating promo.' };
     }
-    const used = data?.length ?? 0;
+    const used = count ?? 0;
     if (used >= promo.limit) {
       return {
         valid: false,
-        message: 'This invite code has reached its usage limit.',
+        message: 'This invitation access code is no longer available.',
       };
     }
   }
@@ -261,6 +262,14 @@ app.post('/verify-payment', async (req, res) => {
     leadData,
     promoData,
   } = req.body;
+
+  // Double check promo limits if promo is applied
+  if (promoData && promoData.couponType) {
+    const promoResult = await validatePromo(promoData.couponType, leadData?.email, leadData?.phone);
+    if (!promoResult.valid) {
+      return res.status(400).json({ success: false, message: promoResult.message });
+    }
+  }
 
   const nameParts = (leadData?.fullName || '').split(' ');
   const firstName = leadData?.firstName || nameParts[0] || '';
