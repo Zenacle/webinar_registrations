@@ -192,7 +192,7 @@ Nagercoil, Tamil Nadu`;
           <!-- Header -->
           <tr>
             <td align="center" bgcolor="#005662" style="padding: 30px;">
-              <img src="https://webinar-registrations-bk1y.vercel.app/logo_horizontal.png" alt="Zenacle Solutions Logo" height="46" style="display: block; border: 0; height: 46px; max-width: 100%;">
+              <img src="https://webinar.zenacle.in/logo_horizontal.png" alt="Zenacle Solutions Logo" height="46" style="display: block; border: 0; height: 46px; max-width: 100%;">
             </td>
           </tr>
           <!-- Content -->
