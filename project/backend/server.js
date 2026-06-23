@@ -42,6 +42,14 @@ const razorpay = new Razorpay({
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+let resend = null;
+if (process.env.RESEND_API_KEY) {
+  const { Resend } = require('resend');
+  resend = new Resend(process.env.RESEND_API_KEY);
+} else {
+  console.warn('⚠️ RESEND_API_KEY is not defined. Email notifications will be disabled.');
+}
+
 const DEFAULT_PRICE = 999; // INR
 
 const PROMO_DEFINITIONS = {
@@ -104,6 +112,202 @@ async function checkSurveyCompletion(email, phone) {
   } catch (error) {
     console.error('Error fetching or parsing survey sheet:', error);
     throw error;
+  }
+}
+
+// ------------------------------------------------------------------
+// Helper: Send Registration Confirmation Email via Resend
+// ------------------------------------------------------------------
+async function sendRegistrationEmail(registrationData) {
+  if (!resend) {
+    console.error(`Registration email failed for ${registrationData?.email || 'unknown'}: Resend client not initialized (missing RESEND_API_KEY).`);
+    return;
+  }
+
+  const fromEmail = process.env.FROM_EMAIL;
+  if (!fromEmail) {
+    console.error(`Registration email failed for ${registrationData?.email || 'unknown'}: FROM_EMAIL is not defined in environment variables.`);
+    return;
+  }
+
+  const {
+    full_name,
+    email,
+    phone,
+    city,
+    specialisation,
+    workshop_batch,
+    promo_code,
+    final_amount
+  } = registrationData;
+
+  const subject = 'Registration Confirmed – Climate Reality, Sustainability & Your Role in the Built Environment';
+
+  const textContent = `Hi ${full_name || ''} 👋
+
+Thank you for registering! We're excited to have you with us.
+
+Climate Reality, Sustainability & Your Role in the Built Environment
+
+📅 July 05, 2026
+🕚 11:00 AM IST
+⏱ 90 Minutes
+🎓 Certificate of Participation Included
+
+Registration Summary
+
+Full Name: ${full_name || ''}
+Email: ${email || ''}
+Phone: ${phone || ''}
+City: ${city || ''}
+Specialisation: ${specialisation || ''}
+Workshop Date: ${workshop_batch || ''}
+Promo Code: ${promo_code || 'None'}
+Amount Paid: ₹${final_amount !== undefined ? final_amount : '0'}
+
+We'll send the joining link and workshop instructions to your email before the session.
+
+Need help?
+
+📧 [info@zenacle.in](mailto:info@zenacle.in)
+📱 WhatsApp: +91 96295 66619
+🌐 https://zenacle.in
+
+Regards,
+Zenacle Solutions LLP
+Nagercoil, Tamil Nadu`;
+
+  const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration Confirmed</title>
+</head>
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f5f7f7; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f5f7f7; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 86, 98, 0.08); border-collapse: collapse;">
+          <!-- Header -->
+          <tr>
+            <td align="center" bgcolor="#005662" style="padding: 30px;">
+              <img src="https://webinar-registrations-bk1y.vercel.app/logo_horizontal.png" alt="Zenacle Solutions Logo" height="46" style="display: block; border: 0; height: 46px; max-width: 100%;">
+            </td>
+          </tr>
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px; color: #1a2e30; line-height: 1.6;">
+              <p style="font-size: 20px; font-weight: bold; color: #003b44; margin-top: 0; margin-bottom: 20px;">Hi ${full_name || ''} 👋</p>
+              <p style="font-size: 16px; margin-top: 0; margin-bottom: 25px; color: #1a2e30;">Thank you for registering! We're excited to have you with us.</p>
+              
+              <!-- Workshop Card -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f0f7f8; border-left: 4px solid #03b3c3; border-radius: 0 6px 6px 0; margin-bottom: 30px; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <h3 style="font-size: 18px; font-weight: bold; color: #005662; margin-top: 0; margin-bottom: 15px;">Climate Reality, Sustainability & Your Role in the Built Environment</h3>
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="font-size: 15px; color: #1a2e30; padding-bottom: 8px;">📅 July 05, 2026</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 15px; color: #1a2e30; padding-bottom: 8px;">🕚 11:00 AM IST</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 15px; color: #1a2e30; padding-bottom: 8px;">⏱ 90 Minutes</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 15px; color: #1a2e30;">🎓 Certificate of Participation Included</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Registration Summary -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 30px; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <h4 style="font-size: 15px; font-weight: bold; color: #003b44; margin-top: 0; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Registration Summary</h4>
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td width="40%" style="font-size: 14px; font-weight: 600; color: #5f7477; padding-bottom: 10px; vertical-align: top;">Full Name:</td>
+                        <td width="60%" style="font-size: 14px; color: #1a2e30; padding-bottom: 10px; vertical-align: top;">${full_name || ''}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 14px; font-weight: 600; color: #5f7477; padding-bottom: 10px; vertical-align: top;">Email:</td>
+                        <td style="font-size: 14px; color: #1a2e30; padding-bottom: 10px; vertical-align: top;">${email || ''}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 14px; font-weight: 600; color: #5f7477; padding-bottom: 10px; vertical-align: top;">Phone:</td>
+                        <td style="font-size: 14px; color: #1a2e30; padding-bottom: 10px; vertical-align: top;">${phone || ''}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 14px; font-weight: 600; color: #5f7477; padding-bottom: 10px; vertical-align: top;">City:</td>
+                        <td style="font-size: 14px; color: #1a2e30; padding-bottom: 10px; vertical-align: top;">${city || ''}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 14px; font-weight: 600; color: #5f7477; padding-bottom: 10px; vertical-align: top;">Specialisation:</td>
+                        <td style="font-size: 14px; color: #1a2e30; padding-bottom: 10px; vertical-align: top;">${specialisation || ''}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 14px; font-weight: 600; color: #5f7477; padding-bottom: 10px; vertical-align: top;">Workshop Date:</td>
+                        <td style="font-size: 14px; color: #1a2e30; padding-bottom: 10px; vertical-align: top;">${workshop_batch || ''}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 14px; font-weight: 600; color: #5f7477; padding-bottom: 10px; vertical-align: top;">Promo Code:</td>
+                        <td style="font-size: 14px; color: #1a2e30; padding-bottom: 10px; vertical-align: top;">${promo_code || 'None'}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 14px; font-weight: 600; color: #5f7477; vertical-align: top;">Amount Paid:</td>
+                        <td style="font-size: 14px; font-weight: bold; color: #005662; vertical-align: top;">₹${final_amount !== undefined ? final_amount : '0'}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="font-size: 15px; color: #5f7477; margin-bottom: 25px; margin-top: 0;">We'll send the joining link and workshop instructions to your email before the session.</p>
+              
+              <!-- Help Section -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-top: 1px solid #e2e8f0; padding-top: 25px; border-collapse: collapse;">
+                <tr>
+                  <td>
+                    <h4 style="font-size: 15px; font-weight: bold; color: #003b44; margin-top: 0; margin-bottom: 12px;">Need help?</h4>
+                    <p style="margin: 0 0 8px 0; font-size: 14px;"><a href="mailto:info@zenacle.in" style="color: #005662; text-decoration: none;">📧 info@zenacle.in</a></p>
+                    <p style="margin: 0 0 8px 0; font-size: 14px;"><a href="https://wa.me/919629566619" style="color: #005662; text-decoration: none;">📱 WhatsApp: +91 96295 66619</a></p>
+                    <p style="margin: 0; font-size: 14px;"><a href="https://zenacle.in" target="_blank" style="color: #005662; text-decoration: none;">🌐 https://zenacle.in</a></p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td bgcolor="#003b44" style="padding: 30px; text-align: center; color: #b3d1d4; font-size: 13px; line-height: 1.5;">
+              <p style="margin: 0 0 5px 0;">Regards,</p>
+              <p style="margin: 0 0 5px 0; font-weight: bold; color: #ffffff;">Zenacle Solutions LLP</p>
+              <p style="margin: 0;">Nagercoil, Tamil Nadu</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await resend.emails.send({
+      from: fromEmail,
+      to: email,
+      subject: subject,
+      text: textContent,
+      html: htmlContent
+    });
+    console.log(`Registration email sent to ${email}`);
+  } catch (error) {
+    console.error(`Registration email failed for ${email}`, error);
   }
 }
 
@@ -302,11 +506,19 @@ app.post('/verify-payment', async (req, res) => {
         razorpay_signature: 'FREE_SIGNATURE',
         registration_source: 'webinar-landing',
       };
-      const { error } = await supabase.from('webinar_registrations').insert([insertPayload]);
+      const { data, error } = await supabase.from('webinar_registrations').insert([insertPayload]).select();
       if (error) {
         console.error('Supabase Free Insert Error:', error);
         throw error;
       }
+
+      // Trigger email asynchronously
+      if (data && data[0]) {
+        sendRegistrationEmail(data[0]).catch(err => {
+          console.error(`Registration email failed for ${data[0].email}:`, err);
+        });
+      }
+
       return res.json({ success: true, message: 'Registration saved (free access).', paymentId: insertPayload.razorpay_payment_id });
     } catch (e) {
       console.error('Free registration error:', e);
@@ -362,10 +574,17 @@ app.post('/verify-payment', async (req, res) => {
     registration_source: 'webinar-landing',
   };
 
-  const { error } = await supabase.from('webinar_registrations').insert([insertPayload]);
+  const { data, error } = await supabase.from('webinar_registrations').insert([insertPayload]).select();
   if (error) {
     console.error('Supabase insert error:', error);
     return res.status(500).json({ success: false, message: 'Failed to save registration.' });
+  }
+
+  // Trigger email asynchronously
+  if (data && data[0]) {
+    sendRegistrationEmail(data[0]).catch(err => {
+      console.error(`Registration email failed for ${data[0].email}:`, err);
+    });
   }
 
   res.json({
