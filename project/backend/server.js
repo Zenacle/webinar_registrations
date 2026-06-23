@@ -423,6 +423,9 @@ app.post('/validate-promo', async (req, res) => {
 // ------------------------------------------------------------------
 app.post('/create-order', async (req, res) => {
   const { promoCode, leadData } = req.body; // leadData contains all form fields
+  if (!leadData || leadData.privacyConsent !== true) {
+    return res.status(400).json({ success: false, message: 'Please accept the Privacy Policy to continue.' });
+  }
   try {
     // Re‑validate promo on server to avoid tampering
     const promoResult = await validatePromo(promoCode, leadData.email, leadData.phone);
@@ -467,6 +470,10 @@ app.post('/verify-payment', async (req, res) => {
     promoData,
   } = req.body;
 
+  if (!leadData || leadData.privacyConsent !== true) {
+    return res.status(400).json({ success: false, message: 'Please accept the Privacy Policy to continue.' });
+  }
+
   // Double check promo limits if promo is applied
   if (promoData && promoData.couponType) {
     const promoResult = await validatePromo(promoData.couponType, leadData?.email, leadData?.phone);
@@ -505,6 +512,8 @@ app.post('/verify-payment', async (req, res) => {
         razorpay_order_id: 'FREE_ORDER',
         razorpay_signature: 'FREE_SIGNATURE',
         registration_source: 'webinar-landing',
+        privacy_consent: leadData.privacyConsent || false,
+        consent_given_at: leadData.consentGivenAt || null,
       };
       const { data, error } = await supabase.from('webinar_registrations').insert([insertPayload]).select();
       if (error) {
@@ -572,6 +581,8 @@ app.post('/verify-payment', async (req, res) => {
     razorpay_order_id,
     razorpay_signature,
     registration_source: 'webinar-landing',
+    privacy_consent: leadData.privacyConsent || false,
+    consent_given_at: leadData.consentGivenAt || null,
   };
 
   const { data, error } = await supabase.from('webinar_registrations').insert([insertPayload]).select();

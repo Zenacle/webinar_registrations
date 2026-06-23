@@ -2795,6 +2795,17 @@
               <span class="error-message" id="errorSession">Please select your preferred workshop date</span>
             </div>
 
+            <!-- Privacy Consent Checkbox -->
+            <div class="form-group" id="groupPrivacyConsent" style="margin-top: 15px; margin-bottom: 20px;">
+              <label for="privacyConsent" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.85rem; color: var(--text-dark); line-height: 1.4; user-select: none;">
+                <input type="checkbox" id="privacyConsent" required style="margin-top: 3px; accent-color: var(--primary-teal); cursor: pointer; width: 16px; height: 16px; flex-shrink: 0;">
+                <span>
+                  I agree to the <a href="/privacy-policy.html" target="_blank" style="color: var(--primary-light); font-weight: 600; text-decoration: underline;">Privacy Policy</a> and consent to Zenacle Solutions collecting, storing, and processing my personal information for webinar registration, communication, certificates, and related updates.
+                </span>
+              </label>
+              <span class="error-message" id="errorPrivacyConsent">Please accept the Privacy Policy to continue.</span>
+            </div>
+
             <!-- CTA button -->
             <button type="submit" id="btnSubmit" class="btn btn-accent btn-submit">
               <span class="spinner" id="btnSpinner"></span>
@@ -3196,13 +3207,18 @@
           input: document.getElementById("session"),
           group: document.getElementById("groupSession"),
           validate: value => value !== ""
+        },
+        privacyConsent: {
+          input: document.getElementById("privacyConsent"),
+          group: document.getElementById("groupPrivacyConsent"),
+          validate: () => document.getElementById("privacyConsent").checked
         }
       };
 
       // Add dynamic input listeners to remove error classes on keyup/change
       Object.keys(fields).forEach(key => {
         const field = fields[key];
-        const eventType = field.input.tagName === "SELECT" ? "change" : "input";
+        const eventType = field.input.tagName === "SELECT" || field.input.type === "checkbox" ? "change" : "input";
         
         field.input.addEventListener(eventType, function () {
           if (field.validate(field.input.value)) {
@@ -3334,6 +3350,8 @@
           city:       fields.city.input.value.trim(),
           background: fields.background.input.value,
           session:    fields.session.input.value,
+          privacyConsent: fields.privacyConsent.input.checked,
+          consentGivenAt: new Date().toISOString(),
           timestamp:  new Date().toISOString()
         };
 

@@ -83,6 +83,7 @@ async function run() {
       city: 'Mumbai',
       background: 'Civil',
       session: 'Batch 1',
+      privacyConsent: true,
     },
   });
   console.log('Status:', r5.status);
