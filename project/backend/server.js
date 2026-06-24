@@ -594,9 +594,14 @@ app.post('/verify-payment', async (req, res) => {
   // free‑access shortcut – if final amount is zero
   if (promoData && promoData.finalAmount === 0) {
     try {
+      console.log('[Trace 1] Entered free-access branch');
+      console.log('[Trace 2] Promo data validated');
+      
       if (await isDuplicate(leadData.email, leadData.phone)) {
         return res.status(409).json({ success: false, message: 'You have already registered.' });
       }
+      
+      console.log('[Trace 3] Building insertPayload');
       const insertPayload = {
         first_name: firstName,
         last_name: lastName,
@@ -620,12 +625,21 @@ app.post('/verify-payment', async (req, res) => {
         privacy_consent: leadData.privacyConsent || false,
         consent_given_at: leadData.consentGivenAt || null,
       };
+      
+      console.log('[Trace 3] insertPayload contents:', JSON.stringify(insertPayload, null, 2));
+      console.log('[Trace 4] About to insert into webinar_registrations');
+      
       const { data, error } = await supabase.from('webinar_registrations').insert([insertPayload]).select();
+      
       if (error) {
-        console.error('Supabase Free Insert Error:', error);
+        console.log('[Trace 5] Insert failed');
+        console.error('Supabase Free Insert Error object:', JSON.stringify(error, null, 2));
         throw error;
       }
-
+      
+      console.log('[Trace 5] Insert completed successfully. Returned data:', JSON.stringify(data, null, 2));
+      console.log('[Trace 6] About to schedule notifications');
+      
       // Trigger email and WhatsApp asynchronously
       if (data && data[0]) {
         sendRegistrationEmail(data[0]).catch(err => {
@@ -635,10 +649,14 @@ app.post('/verify-payment', async (req, res) => {
           console.error(`WhatsApp notification failed for ${data[0].email}:`, err);
         });
       }
-
+      
+      console.log('[Trace 7] Returning success response');
       return res.json({ success: true, message: 'Registration saved (free access).', paymentId: insertPayload.razorpay_payment_id });
     } catch (e) {
       console.error('Free registration error:', e);
+      if (e && e.stack) {
+        console.error('Free registration error stack trace:', e.stack);
+      }
       return res.status(500).json({ success: false, message: 'Failed to save registration.' });
     }
   }
