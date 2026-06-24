@@ -199,7 +199,7 @@ Nagercoil, Tamil Nadu`;
         <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 86, 98, 0.08); border-collapse: collapse;">
           <!-- Header -->
           <tr>
-            <td align="center" bgcolor="#005662" style="padding: 30px;">
+            <td align="center" bgcolor="#ffffff" style="padding: 30px; border-bottom: 1px solid #f0f4f4;">
               <img src="https://webinar.zenacle.in/logo_horizontal.png" alt="Zenacle Solutions Logo" height="46" style="display: block; border: 0; height: 46px; max-width: 100%;">
             </td>
           </tr>
