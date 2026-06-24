@@ -120,14 +120,19 @@ async function checkSurveyCompletion(email, phone) {
 // Helper: Send Registration Confirmation Email via Resend
 // ------------------------------------------------------------------
 async function sendRegistrationEmail(registrationData) {
+  console.log(`Calling sendRegistrationEmail for ${registrationData?.email || 'unknown'}`);
   if (!resend) {
-    console.error(`Registration email failed for ${registrationData?.email || 'unknown'}: Resend client not initialized (missing RESEND_API_KEY).`);
+    const errMsg = `Registration email failed for ${registrationData?.email || 'unknown'}: Resend client not initialized (missing RESEND_API_KEY).`;
+    console.error(errMsg);
+    console.error("Registration email failed");
     return;
   }
 
   const fromEmail = process.env.FROM_EMAIL;
   if (!fromEmail) {
-    console.error(`Registration email failed for ${registrationData?.email || 'unknown'}: FROM_EMAIL is not defined in environment variables.`);
+    const errMsg = `Registration email failed for ${registrationData?.email || 'unknown'}: FROM_EMAIL is not defined in environment variables.`;
+    console.error(errMsg);
+    console.error("Registration email failed");
     return;
   }
 
@@ -307,8 +312,10 @@ Nagercoil, Tamil Nadu`;
       html: htmlContent
     });
     console.log(`Registration email sent to ${email}`);
+    console.log("Registration email sent");
   } catch (error) {
     console.error(`Registration email failed for ${email}`, error);
+    console.error("Registration email failed");
   }
 }
 
@@ -640,14 +647,16 @@ app.post('/verify-payment', async (req, res) => {
       console.log('[Trace 5] Insert completed successfully. Returned data:', JSON.stringify(data, null, 2));
       console.log('[Trace 6] About to schedule notifications');
       
-      // Trigger email and WhatsApp asynchronously
+      // Trigger email and WhatsApp and await them so they complete in serverless/Vercel environments
       if (data && data[0]) {
-        sendRegistrationEmail(data[0]).catch(err => {
-          console.error(`Registration email failed for ${data[0].email}:`, err);
-        });
-        sendWhatsAppNotification(data[0]).catch(err => {
-          console.error(`WhatsApp notification failed for ${data[0].email}:`, err);
-        });
+        await Promise.all([
+          sendRegistrationEmail(data[0]).catch(err => {
+            console.error(`Registration email failed for ${data[0].email}:`, err);
+          }),
+          sendWhatsAppNotification(data[0]).catch(err => {
+            console.error(`WhatsApp notification failed for ${data[0].email}:`, err);
+          })
+        ]);
       }
       
       console.log('[Trace 7] Returning success response');
@@ -717,14 +726,16 @@ app.post('/verify-payment', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to save registration.' });
   }
 
-  // Trigger email and WhatsApp asynchronously
+  // Trigger email and WhatsApp and await them so they complete in serverless/Vercel environments
   if (data && data[0]) {
-    sendRegistrationEmail(data[0]).catch(err => {
-      console.error(`Registration email failed for ${data[0].email}:`, err);
-    });
-    sendWhatsAppNotification(data[0]).catch(err => {
-      console.error(`WhatsApp notification failed for ${data[0].email}:`, err);
-    });
+    await Promise.all([
+      sendRegistrationEmail(data[0]).catch(err => {
+        console.error(`Registration email failed for ${data[0].email}:`, err);
+      }),
+      sendWhatsAppNotification(data[0]).catch(err => {
+        console.error(`WhatsApp notification failed for ${data[0].email}:`, err);
+      })
+    ]);
   }
 
   res.json({
