@@ -9,6 +9,7 @@ const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 const csv = require('csv-parser');
 const { Readable } = require('stream');
+const fs = require('fs');
 
 const app = express();
 app.use(cors());
@@ -312,6 +313,110 @@ Nagercoil, Tamil Nadu`;
 }
 
 // ------------------------------------------------------------------
+// Helper: Send WhatsApp Confirmation via CRM Integration Endpoint
+// ------------------------------------------------------------------
+async function sendWhatsAppNotification(registrationData) {
+  // Do not call the CRM for pending or failed payments. Only proceed for free_access or paid registrations.
+  if (registrationData.payment_status !== 'free_access' && registrationData.payment_status !== 'paid') {
+    console.log(`[WhatsApp] Skipping CRM integration for registration ${registrationData.id} (payment_status: ${registrationData.payment_status})`);
+    return;
+  }
+
+  // Ensure retry-safe behavior:
+  // 1. Check if whatsapp_sent is already true in the passed registrationData
+  if (registrationData.whatsapp_sent === true) {
+    console.log(`[WhatsApp] WhatsApp already sent for registration ${registrationData.id} (skipped).`);
+    return;
+  }
+
+  // 2. Fetch the latest registration state from database to check whatsapp_sent
+  try {
+    const { data: latestReg, error: fetchError } = await supabase
+      .from('webinar_registrations')
+      .select('whatsapp_sent')
+      .eq('id', registrationData.id)
+      .single();
+
+    if (fetchError) {
+      console.error(`[WhatsApp] Failed to fetch latest registration state for retry-safe check:`, fetchError.message || fetchError);
+    } else if (latestReg && latestReg.whatsapp_sent === true) {
+      console.log(`[WhatsApp] WhatsApp already sent for registration ${registrationData.id} according to DB (skipped).`);
+      return;
+    }
+  } catch (err) {
+    console.error(`[WhatsApp] Exception during retry-safe database check for registration ${registrationData.id}:`, err.message || err);
+  }
+
+  const crmUrl = process.env.CRM_API_URL || 'https://wacrm.zenacle.in/api/integrations/webinar-registration';
+  
+  const payload = {
+    registration_id: registrationData.id,
+    full_name: registrationData.full_name,
+    email: registrationData.email,
+    phone: registrationData.phone,
+    workshop_batch: registrationData.workshop_batch,
+    payment_status: registrationData.payment_status,
+  };
+
+  const headers = {};
+  const crmSecret = process.env.CRM_INTEGRATION_SECRET || process.env.INTEGRATION_SECRET;
+  if (crmSecret) {
+    headers['Authorization'] = `Bearer ${crmSecret}`;
+  }
+
+  try {
+    console.log(`[WhatsApp] Triggering CRM integration for registration ${registrationData.id} (${registrationData.email})`);
+    const response = await axios.post(crmUrl, payload, { headers, timeout: 15000 });
+    
+    if (response.data && response.data.success === true) {
+      console.log(`[WhatsApp] CRM registration integration succeeded for ${registrationData.email}.`);
+      
+      const { error } = await supabase
+        .from('webinar_registrations')
+        .update({ whatsapp_sent: true })
+        .eq('id', registrationData.id);
+        
+      if (error) {
+        const dbErrorMsg = `Failed to update whatsapp_sent in DB for registration ${registrationData.id}: ${error.message || JSON.stringify(error)}`;
+        console.error(`[WhatsApp] ${dbErrorMsg}`);
+        logCRMError(dbErrorMsg, null);
+      } else {
+        console.log(`[WhatsApp] Successfully updated whatsapp_sent to true for registration ${registrationData.id}`);
+      }
+    } else {
+      const nonSuccessMsg = `CRM integration returned non-success response for ${registrationData.email}: ${JSON.stringify(response.data)}`;
+      console.error(`[WhatsApp] ${nonSuccessMsg}`);
+      logCRMError(nonSuccessMsg, null);
+    }
+  } catch (error) {
+    const errorMsg = `Failed CRM integration request for ${registrationData.email}`;
+    logCRMError(errorMsg, error);
+  }
+}
+
+// ------------------------------------------------------------------
+// Helper: Log CRM integration errors to file and console
+// ------------------------------------------------------------------
+function logCRMError(message, error) {
+  const timestamp = new Date().toISOString();
+  let errorDetails = '';
+  if (error) {
+    if (error.response) {
+      errorDetails = `Status: ${error.response.status} - Data: ${JSON.stringify(error.response.data)}`;
+    } else {
+      errorDetails = error.message || String(error);
+    }
+  }
+  const logLine = `[${timestamp}] ${message} ${errorDetails ? '| Details: ' + errorDetails : ''}\n`;
+  console.error(`[CRM Log Error] ${logLine.trim()}`);
+  try {
+    fs.appendFileSync(path.join(__dirname, 'crm_errors.log'), logLine);
+  } catch (fsErr) {
+    console.error('Failed to write CRM error to log file:', fsErr.message || fsErr);
+  }
+}
+
+// ------------------------------------------------------------------
 // Helper: Promo validation (server‑side)
 // ------------------------------------------------------------------
 async function validatePromo(promoCode, email, phone) {
@@ -521,10 +626,13 @@ app.post('/verify-payment', async (req, res) => {
         throw error;
       }
 
-      // Trigger email asynchronously
+      // Trigger email and WhatsApp asynchronously
       if (data && data[0]) {
         sendRegistrationEmail(data[0]).catch(err => {
           console.error(`Registration email failed for ${data[0].email}:`, err);
+        });
+        sendWhatsAppNotification(data[0]).catch(err => {
+          console.error(`WhatsApp notification failed for ${data[0].email}:`, err);
         });
       }
 
@@ -591,10 +699,13 @@ app.post('/verify-payment', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to save registration.' });
   }
 
-  // Trigger email asynchronously
+  // Trigger email and WhatsApp asynchronously
   if (data && data[0]) {
     sendRegistrationEmail(data[0]).catch(err => {
       console.error(`Registration email failed for ${data[0].email}:`, err);
+    });
+    sendWhatsAppNotification(data[0]).catch(err => {
+      console.error(`WhatsApp notification failed for ${data[0].email}:`, err);
     });
   }
 
