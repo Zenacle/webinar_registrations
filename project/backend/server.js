@@ -52,6 +52,7 @@ if (process.env.RESEND_API_KEY) {
 }
 
 const DEFAULT_PRICE = 999; // INR
+const ACTIVE_SESSIONS = ['July 05, 2026 · Online'];
 
 const PROMO_DEFINITIONS = {
   ZEN70: { discountPercent: 70, type: 'single' },
@@ -558,6 +559,9 @@ app.post('/create-order', async (req, res) => {
   if (!leadData || leadData.privacyConsent !== true) {
     return res.status(400).json({ success: false, message: 'Please accept the Privacy Policy to continue.' });
   }
+  if (!ACTIVE_SESSIONS.includes(leadData.session)) {
+    return res.status(400).json({ success: false, message: 'This workshop session is no longer available.' });
+  }
   try {
     // Re‑validate promo on server to avoid tampering
     const promoResult = await validatePromo(promoCode, leadData.email, leadData.phone);
@@ -604,6 +608,9 @@ app.post('/verify-payment', async (req, res) => {
 
   if (!leadData || leadData.privacyConsent !== true) {
     return res.status(400).json({ success: false, message: 'Please accept the Privacy Policy to continue.' });
+  }
+  if (!ACTIVE_SESSIONS.includes(leadData.session)) {
+    return res.status(400).json({ success: false, message: 'This workshop session is no longer available.' });
   }
 
   // Double check promo limits if promo is applied

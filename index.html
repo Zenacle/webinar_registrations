@@ -433,6 +433,22 @@
       box-shadow: 0 4px 12px rgba(3, 179, 195, 0.1);
     }
 
+    .session-item.closed {
+      cursor: not-allowed;
+      opacity: 0.6;
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+    .session-item.closed:hover {
+      background-color: var(--bg-light);
+      border-color: rgba(239, 68, 68, 0.2);
+      box-shadow: none;
+      transform: none;
+    }
+    .session-item.closed:active {
+      transform: none;
+      box-shadow: none;
+    }
+
     @keyframes glowHighlight {
       0% {
         box-shadow: var(--shadow-lg);
@@ -2355,18 +2371,18 @@
           
           <div class="session-list">
             <!-- Session 1 -->
-            <div class="session-item" data-session-val="June 13, 2026 · Online">
+            <div class="session-item closed" data-session-val="June 13, 2026 · Online">
               <div class="session-info">
-                <div class="session-icon">
+                <div class="session-icon" style="color: #ef4444;">
                   <!-- Video Camera Icon -->
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>
                 </div>
                 <div class="session-details">
-                  <h4>June 13, 2026</h4>
-                  <p>11:00 AM IST · Online</p>
+                  <h4 style="text-decoration: line-through; color: #5f7477;">June 13, 2026</h4>
+                  <p>11:00 AM IST · Online (Closed)</p>
                 </div>
               </div>
-              <span class="session-badge online">Online</span>
+              <span class="session-badge closed" style="background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">Closed</span>
             </div>
 
             <!-- Session 2 -->
@@ -2788,7 +2804,7 @@
               <div class="select-wrapper">
                 <select id="session" class="form-control select-dropdown" required>
                   <option value="" disabled selected hidden>Select preferred workshop date</option>
-                  <option value="June 13, 2026 · Online">June 13, 2026 · Online</option>
+                  <option value="June 13, 2026 · Online" disabled>June 13, 2026 · Online (Closed)</option>
                   <option value="July 05, 2026 · Online">July 05, 2026 · Online</option>
                 </select>
               </div>
@@ -3111,8 +3127,11 @@
       const sessionDropdown = document.getElementById("session");
       const registrationCard = document.querySelector(".registration-card");
 
-      sessionCards.forEach(card => {
+       sessionCards.forEach(card => {
         card.addEventListener("click", function () {
+          if (this.classList.contains("closed")) {
+             return;
+          }
           const val = this.getAttribute("data-session-val");
           if (val && sessionDropdown) {
             sessionDropdown.value = val;
