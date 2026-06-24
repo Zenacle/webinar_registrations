@@ -178,12 +178,11 @@ We'll send the joining link and workshop instructions to your email before the s
 Need help?
 
 📧 [info@zenacle.in](mailto:info@zenacle.in)
-📱 WhatsApp: +91 96295 66619
+📱 WhatsApp: +91 73581 16619
 🌐 https://zenacle.in
 
 Regards,
-Zenacle Solutions LLP
-Nagercoil, Tamil Nadu`;
+Zenacle Solutions LLP`;
 
   const htmlContent = `<!DOCTYPE html>
 <html>
@@ -283,7 +282,7 @@ Nagercoil, Tamil Nadu`;
                   <td>
                     <h4 style="font-size: 15px; font-weight: bold; color: #003b44; margin-top: 0; margin-bottom: 12px;">Need help?</h4>
                     <p style="margin: 0 0 8px 0; font-size: 14px;"><a href="mailto:info@zenacle.in" style="color: #005662; text-decoration: none;">📧 info@zenacle.in</a></p>
-                    <p style="margin: 0 0 8px 0; font-size: 14px;"><a href="https://wa.me/919629566619" style="color: #005662; text-decoration: none;">📱 WhatsApp: +91 96295 66619</a></p>
+                    <p style="margin: 0 0 8px 0; font-size: 14px;"><a href="https://wa.me/917358116619" style="color: #005662; text-decoration: none;">📱 WhatsApp: +91 73581 16619</a></p>
                     <p style="margin: 0; font-size: 14px;"><a href="https://zenacle.in" target="_blank" style="color: #005662; text-decoration: none;">🌐 https://zenacle.in</a></p>
                   </td>
                 </tr>
@@ -294,8 +293,7 @@ Nagercoil, Tamil Nadu`;
           <tr>
             <td bgcolor="#003b44" style="padding: 30px; text-align: center; color: #b3d1d4; font-size: 13px; line-height: 1.5;">
               <p style="margin: 0 0 5px 0;">Regards,</p>
-              <p style="margin: 0 0 5px 0; font-weight: bold; color: #ffffff;">Zenacle Solutions LLP</p>
-              <p style="margin: 0;">Nagercoil, Tamil Nadu</p>
+              <p style="margin: 0; font-weight: bold; color: #ffffff;">Zenacle Solutions LLP</p>
             </td>
           </tr>
         </table>
