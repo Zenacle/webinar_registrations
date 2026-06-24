@@ -137,6 +137,7 @@ async function sendRegistrationEmail(registrationData) {
   }
 
   const {
+    id,
     full_name,
     email,
     phone,
@@ -304,15 +305,34 @@ Nagercoil, Tamil Nadu`;
 </html>`;
 
   try {
-    await resend.emails.send({
+    const res = await resend.emails.send({
       from: fromEmail,
       to: email,
       subject: subject,
       text: textContent,
       html: htmlContent
     });
+
+    if (res && res.error) {
+      console.error(`Registration email failed for ${email}`, res.error);
+      console.error("Registration email failed");
+      return;
+    }
+
     console.log(`Registration email sent to ${email}`);
     console.log("Registration email sent");
+
+    // Update the email_sent flag in the database
+    const { error: dbError } = await supabase
+      .from('webinar_registrations')
+      .update({ email_sent: true })
+      .eq('id', id);
+
+    if (dbError) {
+      console.error(`Failed to update email_sent flag for ${email} in DB:`, dbError.message || dbError);
+    } else {
+      console.log(`Email flag updated for ${email}`);
+    }
   } catch (error) {
     console.error(`Registration email failed for ${email}`, error);
     console.error("Registration email failed");
